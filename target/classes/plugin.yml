@@ -1,0 +1,9 @@
+name: BlackStorage
+version: '1.0-SNAPSHOT'
+main: me.sharyx.blackstorage.BlackStorage
+api-version: '1.19'
+commands:
+  schowek:
+    aliases:
+      - storage
+    usage: /schowek
