@@ -150,14 +150,15 @@ public class PlayerStorage {
             }
         }
         if(amount > Config.getLimit(item.toLowerCase())) {
-            player.sendMessage(Config.getPrefix() + ChatColor.RED + " Osiągnąłeś limit tego przedmiotu w ekwipunku: " + ChatColor.WHITE + Config.getLimit(item.toLowerCase()));
+            player.sendMessage(Config.getPrefix() + ChatColor.RED + " Osiągnąłeś limit tego przedmiotu w ekwipunku: " + ChatColor.WHITE + Config.getLimit(item));
+            player.sendMessage(Config.getPrefix() + ChatColor.RED + " Nadmierne przedmioty znajdziesz pod" + ChatColor.WHITE + " /schowek");
             player.updateInventory();
             return amount - Config.getLimit(item.toLowerCase());
         }
         return 0;
     }
 
-    public static boolean isEnoughItem(Player player, String item) {
+    public static boolean isEnoughItem(Player player, String item, boolean sendMessage) {
         int count = playersStorage.get(player).get(item);
         int amount = 0;
         if (count <= 0) return false;
@@ -168,14 +169,17 @@ public class PlayerStorage {
             }
         }
         if (amount >= Config.getLimit( item )) {
-            player.sendMessage(Config.getPrefix() + ChatColor.RED + " Osiągnąłeś limit tego przedmiotu w ekwipunku: " + ChatColor.WHITE + Config.getLimit(item));
+            if(sendMessage) {
+                player.sendMessage(Config.getPrefix() + ChatColor.RED + " Osiągnąłeś limit tego przedmiotu w ekwipunku: " + ChatColor.WHITE + Config.getLimit(item));
+                player.sendMessage(Config.getPrefix() + ChatColor.RED + " Nadmierne przedmioty znajdziesz pod" + ChatColor.WHITE + " /schowek");
+            }
             return false;
         }
         return true;
     }
 
     public static void getItemFromStorage(Player player, String item, boolean sendMessage) {
-        if(isEnoughItem(player, item)) {
+        if(isEnoughItem(player, item, sendMessage)) {
             boolean hasSameItem = false;
             Inventory inventory = player.getInventory();
             ItemStack itemStack = new ItemStack(Material.valueOf(item.toUpperCase()));
@@ -187,7 +191,7 @@ public class PlayerStorage {
                 }
             }
             if(inventory.firstEmpty() == -1 && !hasSameItem) {
-                if(sendMessage == true) player.sendMessage(Config.getPrefix() + ChatColor.RED + " Nie masz wystarczająco miejsca w ekwipunku");
+                player.sendMessage(Config.getPrefix() + ChatColor.RED + " Nie masz wystarczająco miejsca w ekwipunku");
                 return;
             }
 
