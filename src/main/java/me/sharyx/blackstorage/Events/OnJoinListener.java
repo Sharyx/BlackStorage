@@ -1,6 +1,7 @@
 package me.sharyx.blackstorage.Events;
 
-import me.sharyx.blackstorage.Config.PlayerStorage;
+import me.sharyx.blackstorage.BlackStorage;
+import me.sharyx.blackstorage.PlayerStorage;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -11,7 +12,8 @@ public class OnJoinListener implements Listener {
     @EventHandler
     public void JoinEvent(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        PlayerStorage.createPlayerData(player);
-        PlayerStorage.playersStorage.put(player, PlayerStorage.getItemsFromStorageJSON(player));
+        PlayerStorage playerStorage = new PlayerStorage(BlackStorage.getInstance());
+        playerStorage.createPlayerData(player);
+        playerStorage.loadPlayerToMemory(player);
     }
 }

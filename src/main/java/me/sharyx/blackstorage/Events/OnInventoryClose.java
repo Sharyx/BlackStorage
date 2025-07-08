@@ -1,23 +1,37 @@
 package me.sharyx.blackstorage.Events;
 
 import me.sharyx.blackstorage.BlackStorage;
-import me.sharyx.blackstorage.Config.PlayerStorage;
-import org.bukkit.Bukkit;
+import me.sharyx.blackstorage.PlayerStorage;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 
+import java.util.Set;
+
 public class OnInventoryClose implements Listener {
 
+    private final BlackStorage plugin;
+    private final PlayerStorage playerStorage;
+
+    public OnInventoryClose(BlackStorage plugin) {
+        this.plugin = plugin;
+        this.playerStorage = new PlayerStorage(plugin);
+    }
+
     @EventHandler
-    public void InventoryCloseEvent(InventoryCloseEvent event) {
+    public void onInventoryClose(InventoryCloseEvent event) {
+        if (!(event.getPlayer() instanceof Player)) {
+            return;
+        }
+
         Player player = (Player) event.getPlayer();
-        Bukkit.getScheduler().runTaskLater(BlackStorage.getInstance(), () -> {
-            PlayerStorage.removeItemFromInv(player, "golden_apple");
-            PlayerStorage.removeItemFromInv(player, "enchanted_golden_apple");
-            PlayerStorage.removeItemFromInv(player, "ender_pearl");
-            PlayerStorage.removeItemFromInv(player, "totem_of_undying");
-        }, 1L); // 1 tick delay
+
+        Set<String> trackedItems = plugin.getConfigManager().getConfig().getConfigurationSection("Limits").getKeys(false);
+
+        trackedItems.forEach(item ->
+                plugin.getServer().getScheduler().runTaskLater(plugin, () ->
+                        playerStorage.removeItemsFromInventory(player, item), 1L)
+        );
     }
 }

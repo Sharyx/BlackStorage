@@ -1,6 +1,8 @@
 package me.sharyx.blackstorage.FoxInventory;
 
-import me.sharyx.blackstorage.Config.PlayerStorage;
+import me.sharyx.blackstorage.BlackStorage;
+import me.sharyx.blackstorage.Config.ItemLimitData;
+import me.sharyx.blackstorage.PlayerStorage;
 import me.sharyx.blackstorage.Items.Item;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -22,6 +24,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
@@ -42,6 +45,8 @@ public class FoxInventory {
             if(!event.getInventory().equals(inventory) || event.getClickedInventory() == null) return;
             if(event.getClickedInventory().equals(inventory)) {
 
+                PlayerStorage playerStorage = new PlayerStorage(BlackStorage.getInstance());
+
                 if(event.isLeftClick() && leftClickCallbacks.containsKey(event.getSlot()))
 
                     leftClickCallbacks.get(event.getSlot()).accept((Player) event.getWhoClicked());
@@ -49,10 +54,35 @@ public class FoxInventory {
                 if(event.isRightClick() && rightClickCallbacks.containsKey(event.getSlot()))
                     rightClickCallbacks.get(event.getSlot()).accept((Player) event.getWhoClicked());
 
-                event.getClickedInventory().setItem(10, new Item(Material.GOLDEN_APPLE, ChatColor.YELLOW + "Złote jabłko", List.of(ChatColor.GOLD + "Posiadasz: " + ChatColor.WHITE + PlayerStorage.playersStorage.get( player ).get("golden_apple"), "", ChatColor.RED + "Limit 16 złotych jabłek")).item);
-                event.getClickedInventory().setItem(12, new Item(Material.ENCHANTED_GOLDEN_APPLE, ChatColor.YELLOW + "Zaklęte złote jabłko", List.of(ChatColor.GOLD + "Posiadasz: " + ChatColor.WHITE + PlayerStorage.playersStorage.get( player ).get("enchanted_golden_apple"), "", ChatColor.RED + "Limit 2 zaklęte złote jabłka")).item);
-                event.getClickedInventory().setItem(14, new Item(Material.TOTEM_OF_UNDYING, ChatColor.YELLOW + "Totem nieśmiertelności", List.of(ChatColor.GOLD + "Posiadasz: " + ChatColor.WHITE + PlayerStorage.playersStorage.get( player ).get("totem_of_undying"), "", ChatColor.RED + "Limit 2 totemy nieśmiertelności")).item);
-                event.getClickedInventory().setItem(16, new Item(Material.ENDER_PEARL, ChatColor.YELLOW + "Ender perła", List.of(ChatColor.GOLD + "Posiadasz: " + ChatColor.WHITE + PlayerStorage.playersStorage.get( player ).get("ender_pearl"), "", ChatColor.RED + "Limit 10 ender pereł")).item);
+                Map<String, ItemLimitData> limits = BlackStorage.getInstance().getConfigManager().getAllLimits();
+
+                for (String item : limits.keySet()) {
+                    ItemLimitData itemLimitData = limits.get(item);
+
+                    Material material;
+                    try {
+                        material = Material.valueOf(itemLimitData.getConfigName().toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        BlackStorage.getInstance().getLogger().warning("Invalid material: " + itemLimitData.getConfigName());
+                        continue;
+                    }
+
+                    int currentAmount = playerStorage.getPlayerItems(player).getOrDefault(itemLimitData.getConfigName(), 0);
+                    int limit = BlackStorage.getInstance().getConfigManager().getLimit(itemLimitData.getConfigName());
+
+                    event.getClickedInventory().setItem(
+                            itemLimitData.getSlot(),
+                            new Item(
+                                    material,
+                                    itemLimitData.getName(),
+                                    List.of(
+                                            ChatColor.GOLD + "Posiadasz: " + ChatColor.WHITE + currentAmount,
+                                            "",
+                                            ChatColor.RED + "Limit " + limit
+                                    )
+                            ).item
+                    );
+                }
 
                 if(preventionOptions.isSlotPrevented(event.getSlot())) {
                     event.setCancelled(true);

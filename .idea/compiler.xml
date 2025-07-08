@@ -10,8 +10,5 @@
         <module name="BlackStorage" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="BlackStorage" target="16" />
-    </bytecodeTargetLevel>
   </component>
 </project>
